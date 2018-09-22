@@ -1,0 +1,16 @@
+#instructions h1 {
+    display: inline-block;
+}
+
+#new-topic-form {
+    float: right;
+    margin: 20px;
+    text-align: right;
+}
+
+#new-topic {
+    float: right;
+    padding: 5px;
+}
+
+
