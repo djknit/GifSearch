@@ -1,5 +1,13 @@
 // declare and initialize search topics array
 var topics = ["pizza", "pancakes", "popcorn", "salad", "apples", "icecream", "hot dogs"];
+// declare and initialize array corresponding with the topics array to track how many times each term has been searched
+var timesTopicsClicked = [];
+topics.forEach(function() {
+    timesTopicsClicked.push(0);
+})
+
+// variable for keeping track of weather or not any favorites have been selected
+var hasChosenFavorites = false;
 
 // add buttons to the page when the page loads
 generateButtons();
@@ -14,8 +22,8 @@ function generateButtons() {
         var newButton = $("<button>");
         newButton.addClass("search-button");
         newButton.text(elementValue);
-        // give the button an attribute representing number of searches done with button whose results are on the page
-        newButton.attr("times-searched", "0");
+        // // give the button an attribute representing number of searches done with button whose results are on the page
+        // newButton.attr("times-searched", "0");
         // add the button to the page
         $("#buttons-area").append(newButton);
     });
@@ -57,7 +65,7 @@ $("#add-topic").on("click", function(event) {
     // if the user input is valid...
     if (isValid()) {
         // if the term is already added but with different capitalization...
-        if (isAlreadyAdded) {
+        if (isAlreadyAdded()) {
             // replace the existing term with the new capitalization version
             topics[topics.indexOf(userInput.toLowerCase())] = userInput;
         }
@@ -65,6 +73,8 @@ $("#add-topic").on("click", function(event) {
         else {
             // add new topic to array
             topics.push($("#new-topic").val().trim());
+            // add corresponding element to timesTopicsClicked array
+            timesTopicsClicked.push(0);
         }
         // regenerate buttons
         generateButtons();
@@ -75,9 +85,9 @@ $("#add-topic").on("click", function(event) {
 
 // when a search topic button is pressed, find gifs using the text of the button pressed as a search term
 $(document).on("click", ".search-button", function() {
-    getGifs($(this).text(), parseInt($(this).attr("times-searched")));
-    // increment the times-searched attribute for the button
-    $(this).attr("times-searched", (parseInt($(this).attr("times-searched")) + 1).toString());
+    getGifs($(this).text(), timesTopicsClicked[topics.indexOf($(this).text())]);
+    // increment the element of the timesTopicsClicked array corresponding the search term
+    timesTopicsClicked[topics.indexOf($(this).text())]++;
 });
 
 // function for getting gifs and adding them to the page
@@ -103,6 +113,7 @@ function getGifs(searchTerm, timesSearched) {
         response.data.forEach(function(dataValue) {
             // create a new div element to hold the image and related content
             var newDiv = $("<div class='gif-box'>");
+            newDiv.addClass(dataValue.id);
             // create a new img element
             var img = $("<img>");
             // set the image source to the fixed-height-still gif url
@@ -121,20 +132,28 @@ function getGifs(searchTerm, timesSearched) {
             var newP = $("<p class='rating'>");
             newP.text("Rating: " + dataValue.rating.toUpperCase());
             // append the rating to the new div element
+            newDiv.append("<br>");
             newDiv.append(newP);
+            // create a new button element to add image to favorites
+            var addToFavsButton = $("<button>");
+            addToFavsButton.text("Add to favorites");
+            addToFavsButton.addClass("add-to-favs");
+            addToFavsButton.attr("image-id", dataValue.id);
+            // append the button to the new div
+            newDiv.append(addToFavsButton);
             // append the individual image div to the span element containing all results returned from current button press
             newSpan.append(newDiv);
         });
         // create variable storing hyphenated search term to be used for element attributes
-        var hyphenatedSearchTerm = searchTerm.replace(" ", "-");
+        var hyphenatedSearchTerm = searchTerm.replace(/\s+/g, '-');
         // if there are no results for the same term already on the page...
         if (offset === 0) {
             // create a div element to hold all the results for current search term
-            imagesDiv = $("<div>");
+            imagesDiv = $("<div class='topic-results'>");
             // give the div an id corresponding to the search term
-            imagesDiv.attr("id", hyphenatedSearchTerm.replace(" ", "-"));
+            imagesDiv.attr("id", hyphenatedSearchTerm.replace(/\s+/g, '-'));
             // display search term before with results
-            imagesDiv.append($("<h3>" + searchTerm + ":</h3>"));
+            imagesDiv.append($("<h2 class='topic-title'>" + searchTerm + ":</h2>"));
             // add a span element to hold all images for current search term and append it to the div
             imagesDiv.append($("<span class='" + hyphenatedSearchTerm + "'>"));
             // add the div element to the page
@@ -155,4 +174,31 @@ $(document).on("click", ".gif", function() {
     else {
         $(this).attr("src", $(this).attr("still-src"));
     }
+});
+
+// clear the results when the user clicks clear results
+$(document).on("click", "#clear-all", function() {
+    $("#search-results").empty();
+    timesTopicsClicked = [];
+    topics.forEach(function() {
+        timesTopicsClicked.push(0);
+    });
+});
+
+// add image to favorites when user presses add-to-favs button
+$(document).on("click", ".add-to-favs", function() {
+    if (hasChosenFavorites === false) {
+        $("#favorites").html("<h2 id='favs-div-title'>Your Favorites:</h2>");
+        $("#favorites").addClass("topic-results");
+        hasChosenFavorites = true;
+    }
+    $("#favorites").append($("." + $(this).attr("image-id")));
+    $(this).text("Remove");
+    $(this).addClass("remove-from-favs");
+    $(this).removeClass("add-to-favs");
+});
+
+// remove image from favorites when remove button is clicked
+$(document).on("click", ".remove-from-favs", function() {
+    $("." + $(this).attr("image-id")).remove();
 });

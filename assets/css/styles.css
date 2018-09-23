@@ -42,4 +42,20 @@ body {
 .rating {
     line-height: 1;
     margin: 5px;
+    display: inline-block;
+}
+
+.topic-results {
+    border-top: 1px solid black;
+    margin-top: 10px;
+}
+
+.topic-title {
+    margin: 10px 5px;
+}
+
+.add-to-favs, .remove-from-favs {
+    float: right;
+    margin-right: 5px;
+    background-color: whitesmoke;
 }
